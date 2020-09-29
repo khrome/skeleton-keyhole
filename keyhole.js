@@ -27,7 +27,9 @@ class SkeletonKeyhole extends HTMLElement{
     }
     connectedCallback(){
         var el = document.createElement('div');
-        var id = 'dkjhdfskjfh'
+        var id = this.getAttribute('identifier') || 'randent-'+Math.random()*1000000;
+        //var id = 'dkjhdfskjfh'
+        console.log('ID', id);
         el.setAttribute('id', id);
         this.appendChild(el);
 
@@ -81,10 +83,8 @@ class KeyholeTileLayer extends HTMLElement{
       super();
     }
     getKeyhole(){
-        var node = this;
-        while(!node instanceof SkeletonKeyhole){
-            node = node.parentNode;
-        }
+        var node = this.parentNode;
+        while(!node instanceof SkeletonKeyhole){ node = node.parentNode };
         return node;
     }
     connectedCallback(){
@@ -111,6 +111,11 @@ class KeyholeDataLayer extends HTMLElement{
     constructor(){
       super();
     }
+    getKeyhole(){
+        var node = this.parentNode;
+        while(!node instanceof SkeletonKeyhole){ node = node.parentNode };
+        return node;
+    }
     connectedCallback(){
         var event = new Event('keyhole-data-add', {bubbles: true});
         event.el = this;
@@ -119,6 +124,12 @@ class KeyholeDataLayer extends HTMLElement{
     }
     connectToMap(map, engine){
         var name = this.getAttribute('name');
+        var invert = !!this.getAttribute('invert');
+        var keyhole = this.getKeyhole();
+        var centerOn = keyhole.getAttribute('center-on');
+
+        var invert;
+        try{ invert = JSON.parse(this.getAttribute('invert')) }catch(ex){}
         if(!this.data){
             var data = this.getAttribute('data');
             if(data){
@@ -126,14 +137,21 @@ class KeyholeDataLayer extends HTMLElement{
                     data = JSON.parse(data);
                 }catch(ex){} //must be a string?
             }
-            var mask;
-            try{ mask = JSON.parse(this.getAttribute('mask')) }catch(ex){}
-            this.data = engine.createData(name, data, {
-                turf: this.turf,
-                mask: mask
-            });
+            this.data = engine.createData(name, data, {});
+        }
+        var scaleBBox = function(box, ratio){
+            var x = box[2]-box[0];
+            var y = box[3]-box[1];
+            var dx = (x * ratio)/2;
+            var dy = (y * ratio)/2;
+            return [box[0]-dx, box[1]-dy, box[2]+dx, box[3]+dy];
+        }
+        if(centerOn && this.data && this.data.data){
+            var bounds = turf.bbox(this.data.data);
+            map.fitBounds(scaleBBox(bounds, 1.0));
         }
         //todo: support data fetch
+        if(invert) engine.addData(map, name+'-inverted', this.data);
         engine.addData(map, name, this.data);
     }
     disconnectedCallback(){
@@ -149,6 +167,11 @@ var getValue = function(el, name){
 class KeyholeShapesLayer extends HTMLElement{
     constructor(){
       super();
+    }
+    getKeyhole(){
+        var node = this.parentNode;
+        while(!node instanceof SkeletonKeyhole){ node = node.parentNode };
+        return node;
     }
     connectedCallback(){
         var event = new Event('keyhole-shapes-add', {bubbles: true});
@@ -177,6 +200,8 @@ class KeyholeShapesLayer extends HTMLElement{
                 'text-font': this.getAttribute('text-font'),
                 'stroke-color': this.getAttribute('stroke-color'),
                 'stroke-width': getValue(this, 'stroke-width'),
+                'min-zoom': getValue(this, 'min-zoom'),
+                'max-zoom': getValue(this, 'max-zoom'),
                 'stroke-opacity': getValue(this, 'stroke-opacity')
             };
             if(data){

@@ -1,6 +1,6 @@
 {
   "name": "skeleton-keyhole",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main":"keyhole.js",
   "devDependencies": {
     "chai": "^4.2.0",

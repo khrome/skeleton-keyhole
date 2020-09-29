@@ -1,7 +1,8 @@
 var polyMask = function(features, turf){
     var featureCollection = features.reduce(function(featureCollection, feature){
-        var geojsonType = turf.getType(feature);
-        switch(geojsonType){
+        //var geojsonType = turf.getType(feature);
+        console.log('>>', features)
+        switch(feature.geometry.type){
             case 'Polygon':
                 featureCollection.push(turf.polygon(feature.geometry.coordinates));
                 break;
@@ -12,7 +13,9 @@ var polyMask = function(features, turf){
         }
         return featureCollection;
     }, []);
-    var mask = turf.combine(turf.featureCollection(featureCollection)).features[0];
+    var union = turf.featureCollection(featureCollection);
+    console.log('!!!', JSON.stringify(union))
+    var mask = turf.combine(union).features[0];
     var bboxPoly = turf.bboxPolygon([-180, -90, 180, 90]);
     var res;
     if(Array.isArray(mask)){
@@ -78,34 +81,40 @@ var mb = {
             }
             var layers = [];
             if(options['fill-color']){
-                layers.push({
+                var layer = {
                     'id': options.name+'-fill',
                     'type': 'fill',
                     'source': options.data,
                     'layout': {},
-                    'filter': filter,
                     'paint': {
                         'fill-color': (options['fill-color'] || '#333333'),
                         'fill-opacity': (options['fill-opacity'] || .8)
                     }
-                });
+                }
+                if(filter) layer.filter = filter;
+                if(options['min-zoom']) layer.minzoom = options['min-zoom'];
+                if(options['max-zoom']) layer.maxzoom = options['max-zoom'];
+                layers.push(layer);
             }
             if(options['stroke-color']){
-                layers.push({
+                var strokeLayer = {
                     'id': options.name+'-line',
                     'type': 'line',
                     'source': options.data,
                     'layout': {},
-                    'filter': filter,
                     'paint': {
                         'line-color': (options['stroke-color'] || '#000000'),
                         'line-opacity': (options['stroke-opacity'] || 1),
                         'line-width': (options['stroke-width'] || 4)
                     }
-                });
+                }
+                if(filter) strokeLayer.filter = filter;
+                if(options['min-zoom']) strokeLayer.minzoom = options['min-zoom'];
+                if(options['max-zoom']) strokeLayer.maxzoom = options['max-zoom'];
+                layers.push(strokeLayer);
             }
             if(options['text'] || options['property']){
-                layers.push({
+                var textLayer = {
                     'id': options.name+'-text',
                     'type': 'symbol',
                     'source': options.data,
@@ -116,14 +125,17 @@ var mb = {
                         //'text-size': (options['text-size'] || 1),
                         "text-font": [(options['text-font'] || 'Arial Unicode MS Regular')],
                     },
-                    'filter': filter,
                     minzoom:14,
                     'paint': {
                         'text-color': (options['text-color'] || 'rgb(0,0,0)'),
                     }
-                });
+                };
+                if(filter) textLayer.filter = filter;
+                if(options['min-zoom']) textLayer.minzoom = options['min-zoom'];
+                if(options['max-zoom']) textLayer.maxzoom = options['max-zoom'];
+                layers.push(textLayer);
             }
-            console.log(layers)
+            //console.log(layers)
             return layers;
         }
     },
@@ -178,15 +190,39 @@ var mb = {
         //if(options.mask)
         var collection = Array.isArray(data)?{
             "type": "FeatureCollection",
-            "features": (options.mask && options.turf)?polyMask(data, options.turf):data
+            "features": data
         }:data;
         return {type:'geojson', data:collection};
     },
     addData : function(map, name, data){
-        map.addSource(name, data);
+        if( name.indexOf('-inverted') !== -1){
+            var copy = JSON.parse(JSON.stringify(data));
+            if(copy.data.features){
+                if(Array.isArray(copy.data.features)){
+                    copy.data.features = polyMask(copy.data.features, window.turf);
+                }else{
+                    copy.data.features = polyMask([copy.data.features], window.turf);
+                }
+            }else{
+                console.log('???', copy, data)
+                copy.data = {
+                    type:'FeatureCollection',
+                    features: polyMask([copy.data], window.turf)
+                };
+                if(!Array.isArray(copy.data.features)){
+                    copy.data.features = [copy.data.features];
+                }
+            }
+            map.addSource(name, copy);
+            console.log('inverted', JSON.stringify(copy.data));
+        }else{
+            map.addSource(name, data);
+        }
     }
 }
 try{
     module.exports = mb;
 }catch(ex){}
-if(window) window.mapboxKeyholeEngine = mb;
+try{
+    if(window) window.mapboxKeyholeEngine = mb;
+}catch(ex){}
