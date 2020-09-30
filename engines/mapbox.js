@@ -1,7 +1,5 @@
 var polyMask = function(features, turf){
     var featureCollection = features.reduce(function(featureCollection, feature){
-        //var geojsonType = turf.getType(feature);
-        console.log('>>', features)
         switch(feature.geometry.type){
             case 'Polygon':
                 featureCollection.push(turf.polygon(feature.geometry.coordinates));
@@ -14,7 +12,6 @@ var polyMask = function(features, turf){
         return featureCollection;
     }, []);
     var union = turf.featureCollection(featureCollection);
-    console.log('!!!', JSON.stringify(union))
     var mask = turf.combine(union).features[0];
     var bboxPoly = turf.bboxPolygon([-180, -90, 180, 90]);
     var res;
@@ -174,14 +171,20 @@ var mb = {
                 }
             }
             if(layer){
-                map.addLayer(layer);
+                if(!map.getLayer(layer.id)) map.addLayer(layer);
             }else{
                 console.log('layer not added');
             }
         }
     },
-    removeLayer : function(map, layer){
-
+    removeLayer : function(map, layer, options){
+        if(Array.isArray(layer)){
+            layer.forEach(function(sublayer){
+                mb.removeLayer(map, sublayer, options)
+            });
+        }else{
+            map.removeLayer(layer.id)
+        }
     },
     createData : function(name, dt, options){
         var data = (typeof dt === 'string')?JSON.parse(dt):dt;
@@ -204,17 +207,16 @@ var mb = {
                     copy.data.features = polyMask([copy.data.features], window.turf);
                 }
             }else{
-                console.log('???', copy, data)
                 copy.data = {
                     type:'FeatureCollection',
                     features: polyMask([copy.data], window.turf)
                 };
-                if(!Array.isArray(copy.data.features)){
-                    copy.data.features = [copy.data.features];
-                }
+            }
+            if(!Array.isArray(copy.data.features)){
+                copy.data.features = [copy.data.features];
             }
             map.addSource(name, copy);
-            console.log('inverted', JSON.stringify(copy.data));
+            //console.log('inverted', JSON.stringify(copy.data));
         }else{
             map.addSource(name, data);
         }

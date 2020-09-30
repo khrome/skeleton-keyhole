@@ -25,14 +25,7 @@ class SkeletonKeyhole extends HTMLElement{
           }
       }
     }
-    connectedCallback(){
-        var el = document.createElement('div');
-        var id = this.getAttribute('identifier') || 'randent-'+Math.random()*1000000;
-        //var id = 'dkjhdfskjfh'
-        console.log('ID', id);
-        el.setAttribute('id', id);
-        this.appendChild(el);
-
+    getEngine(){
         var engineName = this.getAttribute('engine');
         if(!engineName) throw new Error('engine not found: '+engineName);
         var engine;
@@ -41,6 +34,15 @@ class SkeletonKeyhole extends HTMLElement{
         }catch(ex){
             throw new Error('engine not found: '+engineName);
         }
+        return engine;
+    }
+    connectedCallback(){
+        var el = document.createElement('div');
+        var id = this.getAttribute('identifier') || 'randent-'+Math.floor(Math.random()*1000000);
+        el.setAttribute('id', id);
+        this.appendChild(el);
+
+        var engine = this.getEngine();
         var auth = {};
         var authToken = this.getAttribute('token');
         if(authToken) auth.token = authToken;
@@ -165,6 +167,9 @@ var getValue = function(el, name){
 }
 
 class KeyholeShapesLayer extends HTMLElement{
+    static get observedAttributes() {
+        return ['active'];
+    }
     constructor(){
       super();
     }
@@ -177,6 +182,19 @@ class KeyholeShapesLayer extends HTMLElement{
         var event = new Event('keyhole-shapes-add', {bubbles: true});
         event.el = this;
         this.dispatchEvent(event);
+    }
+    attributeChangedCallback(name, outgoing, incoming){
+        if(outgoing !== null){
+            var keyhole = this.getKeyhole();
+            if(incoming && (
+                incoming === true ||
+                incoming.toLowerCase().substring(0,1) === 't'
+            )){
+                keyhole.engineInstance.addLayer(keyhole.mapInstance, this.layer, {});
+            }else{
+                keyhole.engineInstance.removeLayer(keyhole.mapInstance, this.layer, {});
+            }
+        }
     }
     connectToMap(map, engine){
         var name = this.getAttribute('name');
