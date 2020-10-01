@@ -51,13 +51,16 @@ class SkeletonKeyhole extends HTMLElement{
         setOptIfAttr('zoom', options, this);
         setOptIfAttr('center', options, this);
         options.id = id;
+        options.onLoad = function(){
+            ob.ready(true);
+        }
         this.engineInstance = engine;
         var map = engine.createMap(options);
         this.mapInstance = map;
         var ob = this;
-        map.on('load', function(){
+        /*map.on('load', function(){
             ob.ready(true);
-        });
+        });*/
         this.addEventListener('keyhole-layer-add', function(e){
             ob.ready(function(){
                 e.el.connectToMap(map, engine);
@@ -148,9 +151,8 @@ class KeyholeDataLayer extends HTMLElement{
             var dy = (y * ratio)/2;
             return [box[0]-dx, box[1]-dy, box[2]+dx, box[3]+dy];
         }
-        if(centerOn && this.data && this.data.data){
-            var bounds = turf.bbox(this.data.data);
-            map.fitBounds(scaleBBox(bounds, 1.0));
+        if(centerOn && this.data){
+            engine.focusOnData(map, this.data, scaleBBox);
         }
         //todo: support data fetch
         if(invert) engine.addData(map, name+'-inverted', this.data);

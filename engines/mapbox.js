@@ -38,6 +38,9 @@ var mb = {
             zoom: options.zoom || 9 // starting zoom
         });
         map.waitingShapeLayers = {};
+        if(options.onLoad) map.on('load', function(){
+            options.onLoad();
+        });
 
         return map;
     },
@@ -196,6 +199,10 @@ var mb = {
             "features": data
         }:data;
         return {type:'geojson', data:collection};
+    },
+    focusOnData : function(map, data, scale){
+        var bounds = turf.bbox(data.data);
+        map.fitBounds(scale(bounds, 1.0));
     },
     addData : function(map, name, data){
         if( name.indexOf('-inverted') !== -1){
