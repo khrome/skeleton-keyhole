@@ -186,7 +186,7 @@ class KeyholeShapesLayer extends HTMLElement{
         this.dispatchEvent(event);
     }
     attributeChangedCallback(name, outgoing, incoming){
-        if(outgoing !== null){
+        //if(outgoing !== null){
             var keyhole = this.getKeyhole();
             if(incoming && (
                 incoming === true ||
@@ -196,7 +196,7 @@ class KeyholeShapesLayer extends HTMLElement{
             }else{
                 keyhole.engineInstance.removeLayer(keyhole.mapInstance, this.layer, {});
             }
-        }
+        //}
     }
     connectToMap(map, engine){
         var name = this.getAttribute('name');
