@@ -147,6 +147,17 @@ var mb = {
             })
         }else{
             if(layer.type === 'fill'){
+                if(options.standardCursorBehavior){
+                    // Change the cursor to a pointer when the mouse is over the places layer.
+                    map.on('mouseenter', layer.id, function () {
+                        map.getCanvas().style.cursor = 'pointer';
+                    });
+
+                    // Change it back to a pointer when it leaves.
+                    map.on('mouseleave', layer.id, function () {
+                        map.getCanvas().style.cursor = '';
+                    });
+                }
                 if(options.callback){
                     map.on('click', layer.id, function(e){
                         if(window[options.callback]){
@@ -161,15 +172,29 @@ var mb = {
                             )
                         }
                     });
-
-                    // Change the cursor to a pointer when the mouse is over the places layer.
-                    map.on('mouseenter', layer.id, function () {
-                        map.getCanvas().style.cursor = 'pointer';
+                }
+                if(options.hover){
+                    var hoverInstance;
+                    map.on('mouseenter', layer.id, function(e){
+                        if(window[options.hover]){
+                            window[options.hover](
+                                e.features[0],
+                                function(coordinates, description){
+                                    //set
+                                    hoverInstance = new mapboxgl.Popup()
+                                        .setLngLat(coordinates)
+                                        .setHTML(description)
+                                        .addTo(map);
+                                }
+                            )
+                        }
                     });
-
-                    // Change it back to a pointer when it leaves.
-                    map.on('mouseleave', layer.id, function () {
-                        map.getCanvas().style.cursor = '';
+                    map.on('mouseleave', layer.id, function(e){
+                        if(hoverInstance){
+                            //handle hoverInstance
+                            hoverInstance.remove();
+                            hoverInstance = undefined;
+                        }
                     });
                 }
             }

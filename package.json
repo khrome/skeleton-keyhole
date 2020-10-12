@@ -1,6 +1,6 @@
 {
   "name": "skeleton-keyhole",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "main":"keyhole.js",
   "devDependencies": {
     "chai": "^4.2.0",
@@ -9,7 +9,5 @@
   "scripts": {
     "serve": "npx node-static -p 8080"
   },
-  "dependencies": {
-    "hybrids": "^4.3.1"
-  }
+  "dependencies": {}
 }
