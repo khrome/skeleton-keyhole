@@ -58,9 +58,6 @@ class SkeletonKeyhole extends HTMLElement{
         var map = engine.createMap(options);
         this.mapInstance = map;
         var ob = this;
-        /*map.on('load', function(){
-            ob.ready(true);
-        });*/
         this.addEventListener('keyhole-layer-add', function(e){
             ob.ready(function(){
                 e.el.connectToMap(map, engine);
@@ -187,8 +184,15 @@ class KeyholeShapesLayer extends HTMLElement{
     }
     attributeChangedCallback(name, outgoing, incoming){
         //if(outgoing !== null){
+            var ob = this;
             var keyhole = this.getKeyhole();
-            if(incoming && (
+            if((!keyhole) || !(this.layer) ){//we aren't linked into the DOM yet
+                setTimeout(function(){
+                    ob.attributeChangedCallback(name, outgoing, incoming)
+                }, 100);
+                return;
+            }
+            if(name==='active' && incoming && (
                 incoming === true ||
                 incoming.toLowerCase().substring(0,1) === 't'
             )){
@@ -210,6 +214,7 @@ class KeyholeShapesLayer extends HTMLElement{
                 data,
                 name,
                 filter,
+                standardCursorBehavior: true,
                 'fill-color': this.getAttribute('fill-color'),
                 'fill-opacity': getValue(this, 'fill-opacity'),
                 'text': this.getAttribute('text'),
