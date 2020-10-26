@@ -25,36 +25,63 @@ var polyMask = function(features, turf){
     return res;
 };
 
+window.googleLibLoad = function(){
+    var actions = waiting;
+    wating = false;
+    setTimeout(function(){
+        actions.forEach(function(action){
+            action();
+        });
+    }, 0);
+}
+
+var waiting = [];
+
+var ready = function(fn){
+    if(waiting){
+        waiting.push(fn);
+    }else{
+        setTimeout(function(){
+            fn();
+        }, 0)
+    }
+}
+
+
 var mb = {
     setup : function(options, callback){
-        //todo: inject deps
-        setTimeout(function(){
+        console.log('S')
+        var script = document.createElement('script');
+        script.src = 'https://maps.googleapis.com/maps/api/js?key='+
+            options.token+'&callback=googleLibLoad';
+        script.defer = true;
+        ready(function(){
             callback();
-        }, 0);
+        });
+        document.head.appendChild(script);
+        console.log('SETUP', script)
     },
     requireDependencies : function(auth){
-        if(!window.L) throw new Error('leaflet required');
+        if(!(window.google && window.google.maps)) throw new Error('google maps required');
     },
     createMap : function(options){
-        var map = L.map(options.id, {maxZoom: options.maxZoom||21});
+        var center = (options.center || [-74.5, 40]);
+        var map = new google.maps.Map(document.getElementById(options.id), {
+            center: { lat: center[0], lng: center[1] },
+            zoom: options.zoom || 19,
+        });
         map.waitingShapeLayers = {};
         console.log('loading');
-        if(options.onLoad) setTimeout(function(){
+        if(options.onLoad) ready(function(){
             console.log('loaded')
             options.onLoad();
-        }, 100);
-        map.setView(
-            (options.center || [-74.5, 40]).reverse(),
-            options.zoom || 19
-        );
+        });
         return map;
     },
     createLayer : function(map, options){
         if(options.tiles){
-            return L.tileLayer(options.tiles, {
-                attribution: options.attribution || 'Served by SkeletonKeyhole',
-                maxZoom :21
-            });
+            console.log('tried to create a gmaps tile layer, lol')
+            return null;
         }
         if(options.data){ //we're displaying shapes
             var data = map.dataRepository[options.data];
@@ -154,5 +181,5 @@ try{
     module.exports = mb;
 }catch(ex){}
 try{
-    if(window) window.leafletKeyholeEngine = mb;
+    if(window) window.googleKeyholeEngine = mb;
 }catch(ex){}

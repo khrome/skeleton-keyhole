@@ -38,6 +38,12 @@ var polyMask = function(features, turf){
 };
 
 var mb = {
+    setup : function(options, callback){
+        //todo: inject deps
+        setTimeout(function(){
+            callback();
+        }, 0);
+    },
     requireDependencies : function(auth){
         if(!Map) throw new Error('openlayers required');
     },

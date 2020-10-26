@@ -1,0 +1,88 @@
+<html>
+    <head>
+        <script src='https://unpkg.com/@turf/turf@3.8.0/turf.min.js'></script>
+        <script src='https://cdn.jsdelivr.net/npm/sift@13.3.5/sift.csp.min.js'></script>
+        <script>
+            //import sft as 'sift';
+            //window.sift = sft;
+            //console.log('SFT', sft);
+        </script>
+        <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.3/build/ol.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.3/css/ol.css"></link>
+        <script src="./engines/openlayers.js"></script>
+        <script src="./keyhole.js"></script>
+        <style>
+            #somethign{
+                height: 100%;
+            }
+            body, skeleton-keyhole{
+                margin:0px;
+                display:block;
+                height: 100%;
+                width: 100%;
+            }
+        </style>
+        <script>
+            window.alertDump = function(feature){
+                alert(JSON.stringify(feature))
+            }
+        </script>
+    </head>
+    <body>
+        <div class="map-container">
+            <skeleton-keyhole
+                engine="openlayers"
+                identifier="somethign"
+                token="no-token"
+                zoom="19"
+                center="[-83.69552671909332,32.88402234265354]"
+                center-on="mask"
+            >
+                <keyhole-tiles
+                    url="https://stamen-tiles.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png"
+                ></keyhole-tiles>
+                <keyhole-data
+                    name="plots"
+                    data='[{"type":"Feature","properties":{"measurement":1},"geometry":{"type":"Polygon","coordinates":[[[-83.69624018669128,32.88395251691908],[-83.69623214006424,32.88374979673315],[-83.6954891681671,32.88380385549475],[-83.69552403688431,32.884002070671784],[-83.69624018669128,32.88395251691908]]]}},{"type":"Feature","properties":{"measurement":0},"geometry":{"type":"Polygon","coordinates":[[[-83.69629114866257,32.88415298420249],[-83.69624555110931,32.88397053646872],[-83.69552671909332,32.88402234265354],[-83.69554817676543,32.884216052467515],[-83.69629114866257,32.88415298420249]]]}},{"type":"Feature","properties":{"measurement":1},"geometry":{"type":"Polygon","coordinates":[[[-83.69540601968765,32.884051624396776],[-83.69528800249098,32.883405171352834],[-83.69485348463058,32.88372727223942],[-83.69497418403625,32.88411694517374],[-83.69540601968765,32.884051624396776]]]}},{"type":"Feature","properties":{"measurement":0},"geometry":{"type":"Polygon","coordinates":[[[-83.69623482227324,32.88372952468906],[-83.69627505540846,32.88353806626608],[-83.69544893503188,32.883567348169336],[-83.6954864859581,32.88378133101476],[-83.69623482227324,32.88372952468906]]]}}]'
+                ></keyhole-data>
+                <keyhole-shapes
+                    name="test-1"
+                    data="plots"
+                    active="true"
+                    fill-color="#FF0044"
+                    fill-opacity="0.3"
+                    callback="alertDump"
+                    property="measurement"
+                    text-color="#FFFFFF"
+                    stroke-color="#222222"
+                    filter='{"properties": {"measurement" : {"$eq": 0}}}'
+                ></keyhole-shapes>
+                <keyhole-shapes
+                    name="test-2"
+                    data="plots"
+                    fill-color="#4400FF"
+                    fill-opacity="0.3"
+                    stroke-color="#222222"
+                    filter='{"properties": {"measurement" : {"$eq": 1}}}'
+                ></keyhole-shapes>
+                <!--<keyhole-data
+                    name="mask"
+                    data='{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[-83.69646281003952,32.884227314652975],[-83.6963501572609,32.883558338353986],[-83.69461476802826,32.8835425711749],[-83.69482666254044,32.88446607264801],[-83.69646281003952,32.884227314652975]]]}}'
+                    invert="true"
+                ></keyhole-data>-->
+                <keyhole-data
+                    name="mask"
+                    data='{"type":"FeatureCollection","features":[{"id":"3bfb86d99827f467c6275f02c305f0b1","type":"Feature","properties":{},"geometry":{"coordinates":[[[-83.6962189,32.8837571],[-83.696208,32.8838063],[-83.6962029,32.8838558],[-83.6962034,32.8839055],[-83.6962096,32.8839553],[-83.6962096,32.8839567],[-83.6962093,32.8839581],[-83.6962087,32.8839594],[-83.6962078,32.8839606],[-83.6962066,32.8839617],[-83.6962052,32.8839625],[-83.6962037,32.8839631],[-83.6962021,32.8839635],[-83.6955727,32.884049],[-83.6955709,32.8840491],[-83.6955691,32.8840489],[-83.6955674,32.8840484],[-83.6955659,32.8840476],[-83.6955646,32.8840466],[-83.6955635,32.8840454],[-83.6955628,32.8840441],[-83.6955623,32.8840426],[-83.6955275,32.8838429],[-83.6955274,32.8838414],[-83.6955277,32.8838399],[-83.6955283,32.8838385],[-83.6955292,32.8838373],[-83.6955303,32.8838362],[-83.6955318,32.8838353],[-83.6955333,32.8838347],[-83.695535,32.8838343],[-83.6962087,32.8837482],[-83.6962104,32.8837482],[-83.6962121,32.8837484],[-83.6962137,32.8837488],[-83.6962152,32.8837495],[-83.6962165,32.8837504],[-83.6962176,32.8837516],[-83.6962184,32.8837528],[-83.6962189,32.8837542],[-83.696219,32.8837556],[-83.6962189,32.8837571]]],"type":"Polygon"}}]}'
+                    invert="true"
+                ></keyhole-data>
+                <keyhole-shapes
+                    name="mask-1"
+                    data="mask-inverted"
+                    fill-color="#00CC00"
+                    fill-opacity="0.3"
+                    stroke-color="#222222"
+                ></keyhole-shapes>
+            </skeleton-keyhole>
+        </div>
+    </body>
+</html>

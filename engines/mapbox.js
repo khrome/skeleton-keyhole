@@ -26,6 +26,12 @@ var polyMask = function(features, turf){
 };
 
 var mb = {
+    setup : function(options, callback){
+        //todo: inject deps
+        setTimeout(function(){
+            callback();
+        }, 0);
+    },
     requireDependencies : function(auth){
         if(!window.mapboxgl) throw new Error('mapbox required');
         window.mapboxgl.accessToken = auth.token;

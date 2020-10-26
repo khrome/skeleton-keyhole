@@ -41,36 +41,37 @@ class SkeletonKeyhole extends HTMLElement{
         var id = this.getAttribute('identifier') || 'randent-'+Math.floor(Math.random()*1000000);
         el.setAttribute('id', id);
         this.appendChild(el);
-
+        var ob = this;
         var engine = this.getEngine();
         var auth = {};
         var authToken = this.getAttribute('token');
         if(authToken) auth.token = authToken;
-        engine.requireDependencies(auth);
         var options = {};
         setOptIfAttr('zoom', options, this);
         setOptIfAttr('center', options, this);
         options.id = id;
-        options.onLoad = function(){
-            ob.ready(true);
-        }
-        this.engineInstance = engine;
-        var map = engine.createMap(options);
-        this.mapInstance = map;
-        var ob = this;
-        this.addEventListener('keyhole-layer-add', function(e){
-            ob.ready(function(){
-                e.el.connectToMap(map, engine);
+        engine.setup(auth, function(){
+            engine.requireDependencies(auth);
+            options.onLoad = function(){
+                ob.ready(true);
+            };
+            ob.engineInstance = engine;
+            var map = engine.createMap(options);
+            ob.mapInstance = map;
+            ob.addEventListener('keyhole-layer-add', function(e){
+                ob.ready(function(){
+                    e.el.connectToMap(map, engine);
+                });
             });
-        });
-        this.addEventListener('keyhole-data-add', function(e){
-            ob.ready(function(){
-                e.el.connectToMap(map, engine);
+            ob.addEventListener('keyhole-data-add', function(e){
+                ob.ready(function(){
+                    e.el.connectToMap(map, engine);
+                });
             });
-        });
-        this.addEventListener('keyhole-shapes-add', function(e){
-            ob.ready(function(){
-                e.el.connectToMap(map, engine);
+            ob.addEventListener('keyhole-shapes-add', function(e){
+                ob.ready(function(){
+                    e.el.connectToMap(map, engine);
+                });
             });
         });
     }
