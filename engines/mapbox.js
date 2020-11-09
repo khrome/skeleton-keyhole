@@ -197,7 +197,8 @@ var mb = {
                                     .setLngLat(coordinates)
                                     .setHTML(description)
                                     .addTo(map);
-                                }
+                                },
+                                e
                             )
                         }
                     });
@@ -214,7 +215,8 @@ var mb = {
                                         .setLngLat(coordinates)
                                         .setHTML(description)
                                         .addTo(map);
-                                }
+                                },
+                                e
                             )
                         }
                     });
