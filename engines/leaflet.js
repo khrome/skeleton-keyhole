@@ -27,10 +27,33 @@ var polyMask = function(features, turf){
 
 var mb = {
     setup : function(options, callback){
+        if(window.L) return callback();
         //todo: inject deps
-        setTimeout(function(){
-            callback();
-        }, 0);
+        var jsSource = 'https://unpkg.com/leaflet@1.7.1/dist/leaflet.js';
+        var styleSource = 'https://unpkg.com/leaflet@1.7.1/dist/leaflet.css';
+        var state = {};
+        var scriptEl = document.createElement('script');
+        var check = function(){
+            if(state.script && state.css) callback()
+        }
+        scriptEl.src = jsSource;
+        scriptEl.onload = function(script){
+            state.script = true;
+            check();
+        };
+        var styleEl = document.createElement('link');
+        styleEl.href = styleSource;
+        styleEl.rel = 'stylesheet';
+        styleEl.onload = function(script){
+            state.css = true;
+            check();
+        };
+        if(options.inject){
+            var el = options.inject === true?document.head:options.inject;
+            el.appendChild(scriptEl);
+            el.appendChild(styleEl);
+        }
+        return [scriptEl, styleEl];
     },
     requireDependencies : function(auth){
         if(!window.L) throw new Error('leaflet required');
@@ -38,9 +61,7 @@ var mb = {
     createMap : function(options){
         var map = L.map(options.id, {maxZoom: options.maxZoom||21});
         map.waitingShapeLayers = {};
-        console.log('loading');
         if(options.onLoad) setTimeout(function(){
-            console.log('loaded')
             options.onLoad();
         }, 100);
         map.setView(
@@ -88,14 +109,12 @@ var mb = {
                     return style;
                 }
             });
-            console.log(layer);
             return layer;
         }
     },
     addLayer : function(map, layer, options){
         var ob = this;
         if(layer){
-            console.log(layer, map)
             layer.addTo(map);
         }else{
             console.log('layer not added');

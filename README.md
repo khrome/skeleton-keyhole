@@ -17,7 +17,7 @@ Demo
 ----
 
     #set your ENV: MAPBOX_TOKEN & GOOGLE_TOKEN
-    npm serve
+    npm run serve
     open "http://localhost:8082/"
 
 Docs
@@ -28,11 +28,21 @@ Soon™
 Testing
 -------
 
+Headless Chrome Test:
+
     npm test
 
-or
+Test in All Browsers:
 
-    karma start --single-run --browsers ChromeHeadless,FirefoxHeadless karma.conf.js
+    npm run full-test
+
+Test in Firefox
+
+    npm run test-ff
+
+Test in Chrome
+
+    npm run test-chrome
 
 Roadmap
 -------
@@ -40,7 +50,7 @@ Roadmap
 - [ ] finish google
 - [ ] Events
 - [ ] live attributes
-- [ ] test harness
+- [x] test harness
 - [ ] extended interfaces: 3D, drawing, turn-by-turn
 - [ ] Docs
 - [ ] D3

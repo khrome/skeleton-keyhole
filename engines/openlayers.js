@@ -39,10 +39,34 @@ var polyMask = function(features, turf){
 
 var mb = {
     setup : function(options, callback){
-        //todo: inject deps
-        setTimeout(function(){
-            callback();
-        }, 0);
+        if(window.ol) return callback();
+        var jsSource = 'https://cdn.jsdelivr.net/gh/openlayers/'+
+            'openlayers.github.io@master/en/v6.4.3/build/ol.js';
+        var styleSource = 'https://cdn.jsdelivr.net/gh/openlayers/'+
+            'openlayers.github.io@master/en/v6.4.3/css/ol.css';
+        var state = {};
+        var scriptEl = document.createElement('script');
+        var check = function(){
+            if(state.script && state.css) callback()
+        }
+        scriptEl.src = jsSource;
+        scriptEl.onload = function(script){
+            state.script = true;
+            check();
+        };
+        var styleEl = document.createElement('link');
+        styleEl.href = styleSource;
+        styleEl.rel = 'stylesheet';
+        styleEl.onload = function(script){
+            state.css = true;
+            check();
+        };
+        if(options.inject){
+            var el = options.inject === true?document.head:options.inject;
+            el.appendChild(scriptEl);
+            el.appendChild(styleEl);
+        }
+        return [scriptEl, styleEl];
     },
     requireDependencies : function(auth){
         if(!Map) throw new Error('openlayers required');
@@ -140,7 +164,12 @@ var mb = {
         map.removeLayer(layer)
     },
     createData : function(name, dt, options){
-        var data = (typeof dt === 'string')?JSON.parse(dt):dt;
+        var data
+        try{
+            data = (typeof dt === 'string')?JSON.parse(dt):dt;
+        }catch(ex){
+            data = []
+        }
         // data is either an array of features or a FeatureCollection
         // return is always a FeatureCollection
         //if(options.mask)

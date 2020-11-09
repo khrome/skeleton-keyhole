@@ -27,10 +27,33 @@ var polyMask = function(features, turf){
 
 var mb = {
     setup : function(options, callback){
-        //todo: inject deps
-        setTimeout(function(){
-            callback();
-        }, 0);
+        if(window.mapboxgl) return callback();
+        //todo: check if deps already exist
+        var jsSource = 'https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.js';
+        var styleSource = 'https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css';
+        var state = {};
+        var scriptEl = document.createElement('script');
+        var check = function(){
+            if(state.script && state.css) callback()
+        }
+        scriptEl.src = jsSource;
+        scriptEl.onload = function(script){
+            state.script = true;
+            check();
+        };
+        var styleEl = document.createElement('link');
+        styleEl.href = styleSource;
+        styleEl.rel = 'stylesheet';
+        styleEl.onload = function(script){
+            state.css = true;
+            check();
+        };
+        if(options.inject){
+            var el = options.inject === true?document.head:options.inject;
+            el.appendChild(scriptEl);
+            el.appendChild(styleEl);
+        }
+        return [scriptEl, styleEl];
     },
     requireDependencies : function(auth){
         if(!window.mapboxgl) throw new Error('mapbox required');

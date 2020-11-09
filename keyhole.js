@@ -9,6 +9,21 @@ var setOptIfAttr = function(name, options, el){
     }
 }
 
+function debounce(func, wait, immediate) {
+    var timeout;
+    return function() {
+        var context = this, args = arguments;
+        var later = function() {
+            timeout = null;
+            if (!immediate) func.apply(context, args);
+        };
+        var callNow = immediate && !timeout;
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) func.apply(context, args);
+    };
+};
+
 class SkeletonKeyhole extends HTMLElement{
     constructor(){
       super();
@@ -40,6 +55,7 @@ class SkeletonKeyhole extends HTMLElement{
         var el = document.createElement('div');
         var id = this.getAttribute('identifier') || 'randent-'+Math.floor(Math.random()*1000000);
         el.setAttribute('id', id);
+        el.setAttribute('class', 'keyhole-container');
         this.appendChild(el);
         var ob = this;
         var engine = this.getEngine();
@@ -50,11 +66,21 @@ class SkeletonKeyhole extends HTMLElement{
         setOptIfAttr('zoom', options, this);
         setOptIfAttr('center', options, this);
         options.id = id;
+        auth.inject = true;
         engine.setup(auth, function(){
             engine.requireDependencies(auth);
-            options.onLoad = function(){
+            //we want to merge any loads in layers trigger multiple on initial definition
+            options.onLoad = debounce(function(){
+                var event = new CustomEvent("keyhole-load", {
+                  detail: {
+                    engine: engine,
+                    map : map,
+                    el : el
+                  }
+                });
+                ob.dispatchEvent(event);
                 ob.ready(true);
-            };
+            }, 500);
             ob.engineInstance = engine;
             var map = engine.createMap(options);
             ob.mapInstance = map;

@@ -50,7 +50,6 @@ var ready = function(fn){
 
 var mb = {
     setup : function(options, callback){
-        console.log('S')
         var script = document.createElement('script');
         script.src = 'https://maps.googleapis.com/maps/api/js?key='+
             options.token+'&callback=googleLibLoad';

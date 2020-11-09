@@ -4,9 +4,25 @@ module.exports = function (config) {
         files: [
             'keyhole.js',
             'engines/**/*.js',
-            'test/**/*.js'
+            'test/**/*.js',
+            'test/**/*.css'
         ],
-        reporters: ['progress'],
+        preprocessors: {
+          '**/*.js': ['env']
+        },
+        envPreprocessor: [
+          'MAPBOX_TOKEN',
+          'GOOGLE_TOKEN'
+        ],
+        reporters: ['spec'],
+        specReporter: {
+          maxLogLines: 5,         // limit number of lines logged per test
+          suppressErrorSummary: true,  // do not print error summary
+          suppressFailed: false,  // do not print information about failed tests
+          suppressPassed: false,  // do not print information about passed tests
+          suppressSkipped: true,  // do not print information about skipped tests
+          showSpecTiming: false // print the time elapsed for each spec
+        },
         port: 9876,  // karma web server port
         colors: true,
         logLevel: config.LOG_INFO,
