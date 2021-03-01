@@ -1,6 +1,6 @@
 {
   "name": "skeleton-keyhole",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "main": "keyhole.js",
   "description": "A Webcomponent for Maps",
   "keywords": [
@@ -8,7 +8,6 @@
     "map",
     "mapbox",
     "leaflet"
-
   ],
   "author": "Abbey Hawk Sparrow <@khrome> (http://patternweaver.com)",
   "contributors": [],
@@ -36,7 +35,6 @@
   "scripts": {
     "serve": "node ./serve.js",
     "test": "./node_modules/karma/bin/karma start --single-run --browsers ChromeHeadless karma.conf.js",
-    "test-ff": "./node_modules/karma/bin/karma start --browsers Firefox karma.conf.js --debug",
     "test-ff": "./node_modules/karma/bin/karma start --browsers Chrome karma.conf.js --debug",
     "full-test": "karma start --single-run --browsers ChromeHeadless,FirefoxHeadless,IE karma.conf.js"
   },

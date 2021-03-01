@@ -254,6 +254,7 @@ class KeyholeShapesLayer extends HTMLElement{
                 'stroke-width': getValue(this, 'stroke-width'),
                 'min-zoom': getValue(this, 'min-zoom'),
                 'max-zoom': getValue(this, 'max-zoom'),
+                'duration': getValue(this, 'duration'),
                 'stroke-opacity': getValue(this, 'stroke-opacity')
             };
             if(data){
