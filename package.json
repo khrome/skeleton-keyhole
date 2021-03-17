@@ -1,6 +1,6 @@
 {
   "name": "skeleton-keyhole",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "main": "keyhole.js",
   "description": "A Webcomponent for Maps",
   "keywords": [
