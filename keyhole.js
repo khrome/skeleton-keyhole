@@ -156,6 +156,7 @@ class KeyholeDataLayer extends HTMLElement{
         var invert = !!this.getAttribute('invert');
         var keyhole = this.getKeyhole();
         var centerOn = keyhole.getAttribute('center-on');
+        var duration = keyhole.getAttribute('duration');
 
         var invert;
         try{ invert = JSON.parse(this.getAttribute('invert')) }catch(ex){}
@@ -176,7 +177,7 @@ class KeyholeDataLayer extends HTMLElement{
             return [box[0]-dx, box[1]-dy, box[2]+dx, box[3]+dy];
         }
         if(centerOn && this.data){
-            engine.focusOnData(map, this.data, scaleBBox);
+            engine.focusOnData(map, this.data, scaleBBox, duration?parseInt(duration):0);
         }
         //todo: support data fetch
         if(invert) engine.addData(map, name+'-inverted', this.data);

@@ -256,10 +256,10 @@ var mb = {
         }:data;
         return {type:'geojson', data:collection};
     },
-    focusOnData : function(map, data, scale){
+    focusOnData : function(map, data, scale, duration){
         var bounds = turf.bbox(data.data);
         map.fitBounds(scale(bounds, 1.0), {
-            duration : this.options.duration
+            duration : duration || (this.options && this.options.duration)
         });
     },
     addData : function(map, name, data){
