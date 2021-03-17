@@ -177,7 +177,8 @@ class KeyholeDataLayer extends HTMLElement{
             return [box[0]-dx, box[1]-dy, box[2]+dx, box[3]+dy];
         }
         if(centerOn && this.data){
-            engine.focusOnData(map, this.data, scaleBBox, duration?parseInt(duration):0);
+            //setting 0 for duration causes a matrix inversion error ???
+            engine.focusOnData(map, this.data, scaleBBox, duration?parseInt(duration):0.1);
         }
         //todo: support data fetch
         if(invert) engine.addData(map, name+'-inverted', this.data);
