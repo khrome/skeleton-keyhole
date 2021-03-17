@@ -259,7 +259,7 @@ var mb = {
     focusOnData : function(map, data, scale){
         var bounds = turf.bbox(data.data);
         map.fitBounds(scale(bounds, 1.0), {
-            duration : options.duration
+            duration : this.options.duration
         });
     },
     addData : function(map, name, data){
