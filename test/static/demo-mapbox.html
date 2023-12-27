@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!--<script src='https://unpkg.com/leaflet@1.7.1/dist/leaflet.js'></script>
+        <link href='https://unpkg.com/leaflet@1.7.1/dist/leaflet.css' rel='stylesheet' />-->
+        <script src='https://unpkg.com/leaflet@1.7.1/dist/leaflet.js'></script>
+        <link href='https://unpkg.com/leaflet@1.7.1/dist/leaflet.css' rel='stylesheet' />
+        <script src='https://unpkg.com/@turf/turf@3.8.0/turf.min.js'></script>
+        <script type="importmap">{ "imports" :{
+            "browser-or-node":"https://unpkg.com/browser-or-node@2.1.1/src/index.js", 
+            "@environment-safe/package" : "https://unpkg.com/@environment-safe/package@0.1.3/src/index.mjs",
+            "@environment-safe/elements" : "https://unpkg.com/@environment-safe/elements/src/index.mjs",
+            "sift": "/node_modules/sift/es5m/index.js",
+            "module": "https://unpkg.com/browser-or-node@2.1.1/src/index.js",
+            "node:events": "https://unpkg.com/extended-emitter@1.3.2/node-events.mjs",
+            "@turf/bbox":"https://cdn.jsdelivr.net/npm/@turf/bbox@6.5.0/dist/es/index.js",
+            "@turf/bbox-polygon":"https://cdn.jsdelivr.net/npm/@turf/bbox-polygon@6.5.0/dist/es/index.js",
+            "@turf/polygon":"https://cdn.jsdelivr.net/npm/@turf/polygon@6.5.0/dist/es/index.js",
+            "@turf/multi-polygon":"https://cdn.jsdelivr.net/npm/@turf/multi-polygon@6.5.0/dist/es/index.js",
+            "@turf/difference":"https://cdn.jsdelivr.net/npm/@turf/difference@6.5.0/dist/es/index.js",
+            "@turf/combine":"https://cdn.jsdelivr.net/npm/@turf/combine@6.5.0/dist/es/index.js",
+            "@turf/helpers":"https://cdn.jsdelivr.net/npm/@turf/helpers@6.5.0/dist/es/index.js",
+            "@turf/meta":"https://cdn.jsdelivr.net/npm/@turf/meta@6.5.0/dist/es/index.js",
+            "path": "https://unpkg.com/browser-or-node@2.1.1/src/index.js"
+        }}</script>
+        <title>SkeletonKeyhole :: Mapbox Demo</title>
+        <style>
+            #somethign{
+                height: 100%;
+            }
+            body, skeleton-keyhole{
+                margin:0px;
+                display:block;
+                height: 100%;
+                width: 100%;
+            }
+        </style>
+        <script>
+            window.alertDump = function(feature){
+                alert(JSON.stringify(feature))
+            }
+        </script>
+        <script type="module">
+            import '../../../src/engines/mapbox.mjs';
+            import '../../../src/index.mjs';
+        </script>
+        <style>
+            .map-container{
+                height: 100%;
+                width: 100%;
+                position:absolute;
+                display: block;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="map-container">
+            <script>
+                const urlParams = new URLSearchParams(window.location.search);
+                console.log()
+                const token = urlParams.get('token') || 'no-token';
+                document.write(`<skeleton-keyhole
+                    engine="leaflet"
+                    id="foo"
+                    identifier="somethign"
+                    token="${token}"
+                    zoom="19"
+                    center="[-83.69552671909332,32.88402234265354]"
+                    center-on="mask"
+                >`);
+            </script>
+            <!--<skeleton-keyhole
+                engine="leaflet"
+                identifier="somethign"
+                token="no-token"
+                zoom="19"
+                center="[-83.69552671909332,32.88402234265354]"
+                center-on="mask"
+            >-->
+                <!-- mapbox does not support tiles w/o CORS leaving no public testable tiles beside their built-in -->
+                <!--<keyhole-tiles
+                    url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                ></keyhole-tiles>-->
+                <keyhole-data
+                    name="plots"
+                    data='[{"type":"Feature","properties":{"measurement":1},"geometry":{"type":"Polygon","coordinates":[[[-83.69624018669128,32.88395251691908],[-83.69623214006424,32.88374979673315],[-83.6954891681671,32.88380385549475],[-83.69552403688431,32.884002070671784],[-83.69624018669128,32.88395251691908]]]}},{"type":"Feature","properties":{"measurement":0},"geometry":{"type":"Polygon","coordinates":[[[-83.69629114866257,32.88415298420249],[-83.69624555110931,32.88397053646872],[-83.69552671909332,32.88402234265354],[-83.69554817676543,32.884216052467515],[-83.69629114866257,32.88415298420249]]]}},{"type":"Feature","properties":{"measurement":1},"geometry":{"type":"Polygon","coordinates":[[[-83.69540601968765,32.884051624396776],[-83.69528800249098,32.883405171352834],[-83.69485348463058,32.88372727223942],[-83.69497418403625,32.88411694517374],[-83.69540601968765,32.884051624396776]]]}},{"type":"Feature","properties":{"measurement":0},"geometry":{"type":"Polygon","coordinates":[[[-83.69623482227324,32.88372952468906],[-83.69627505540846,32.88353806626608],[-83.69544893503188,32.883567348169336],[-83.6954864859581,32.88378133101476],[-83.69623482227324,32.88372952468906]]]}}]'
+                ></keyhole-data>
+                <keyhole-shapes
+                    name="test-1"
+                    data="plots"
+                    active="true"
+                    fill-color="#FF0044"
+                    fill-opacity="0.3"
+                    callback="alertDump"
+                    property="measurement"
+                    text-color="#FFFFFF"
+                    stroke-color="#222222"
+                    filter='{"properties.measurement" : {"$eq": 0}}'
+                ></keyhole-shapes>
+                <keyhole-shapes
+                    name="test-2"
+                    data="plots"
+                    fill-color="#4400FF"
+                    fill-opacity="0.3"
+                    stroke-color="#222222"
+                    filter='{"properties.measurement" : {"$eq": 1}}'
+                ></keyhole-shapes>
+                <keyhole-data
+                    name="mask"
+                    data='[{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[-83.69646281003952,32.884227314652975],[-83.6963501572609,32.883558338353986],[-83.69461476802826,32.8835425711749],[-83.69482666254044,32.88446607264801],[-83.69646281003952,32.884227314652975]]]}}]'
+                    invert="true"
+                ></keyhole-data>
+                <keyhole-shapes
+                    name="mask-1"
+                    data="mask-inverted"
+                    fill-color="#00CC00"
+                    fill-opacity="0.3"
+                    stroke-color="#222222"
+                ></keyhole-shapes>
+            </skeleton-keyhole>
+            <script>
+                const el = document.getElementById('foo');
+                el.addEventListener('load', (e)=>{
+                    console.log('MAP LOAD COMPLETE');
+                });
+            </script>
+        </div>
+    </body>
+</html>

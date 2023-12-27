@@ -1,3 +1,5 @@
+import sift from 'sift';
+
 var polyMask = function(features, turf){
     var featureCollection = features.reduce(function(featureCollection, feature){
         switch(feature.geometry.type){
@@ -26,35 +28,6 @@ var polyMask = function(features, turf){
 };
 
 var mb = {
-    setup : function(options, callback){
-        if(window.L) return callback();
-        //todo: inject deps
-        var jsSource = 'https://unpkg.com/leaflet@1.7.1/dist/leaflet.js';
-        var styleSource = 'https://unpkg.com/leaflet@1.7.1/dist/leaflet.css';
-        var state = {};
-        var scriptEl = document.createElement('script');
-        var check = function(){
-            if(state.script && state.css) callback()
-        }
-        scriptEl.src = jsSource;
-        scriptEl.onload = function(script){
-            state.script = true;
-            check();
-        };
-        var styleEl = document.createElement('link');
-        styleEl.href = styleSource;
-        styleEl.rel = 'stylesheet';
-        styleEl.onload = function(script){
-            state.css = true;
-            check();
-        };
-        if(options.inject){
-            var el = options.inject === true?document.head:options.inject;
-            el.appendChild(scriptEl);
-            el.appendChild(styleEl);
-        }
-        return [scriptEl, styleEl];
-    },
     requireDependencies : function(auth){
         if(!window.L) throw new Error('leaflet required');
     },
@@ -78,16 +51,22 @@ var mb = {
             });
         }
         if(options.data){ //we're displaying shapes
-            var data = map.dataRepository[options.data];
+            var data = typeof options.data === 'string'?
+                map.dataRepository[options.data]:
+                options.data;
             var map = {
                 '$eq' : '=='
             }
             var filter;
-            if(options.filter && window.sift){
-                var test = window.sift(filter);
+            if(options.filter){
+                var test = sift(options.filter);
                 filter = function(feature){
-                    return test(feature);
+                    const result = test(feature);
+                    return result;
                 }
+                const copy = JSON.parse(JSON.stringify(data));
+                copy.features = copy.features.filter(filter);
+                data = copy;
             }
             var layers = [];
             var style = {};
@@ -112,6 +91,9 @@ var mb = {
             return layer;
         }
     },
+    getMapOptions : function(options){
+        return options;
+    },
     addLayer : function(map, layer, options){
         var ob = this;
         if(layer){
@@ -121,7 +103,7 @@ var mb = {
         }
     },
     removeLayer : function(map, layer, options){
-        map.remove(layer)
+        map.removeLayer(layer);
     },
     createData : function(name, dt, options){
         var data = (typeof dt === 'string')?JSON.parse(dt):dt;
@@ -143,35 +125,80 @@ var mb = {
         ];
         map.fitBounds(reordered);
     },
-    addData : function(map, name, data){
-        if( name.indexOf('-inverted') !== -1){
-            var copy = JSON.parse(JSON.stringify(data));
-            if(copy.features){
-                if(Array.isArray(copy.features)){
-                    copy.features = polyMask(copy.features, window.turf);
-                }else{
-                    copy.features = polyMask([copy.features], window.turf);
-                }
-            }else{
-                copy = {
-                    type:'FeatureCollection',
-                    features: polyMask([copy], window.turf)
-                };
+    getData : function(map, name, root){
+        const repository = map.dataRepository;
+        return repository[name];
+        //*
+        if(name.indexOf('-inverted') !== -1){
+            const els = root.querySelector(`keyhole-data[name='${name.substring(0, name.length-9)}'][invert='true']`);
+            const repoData = map.dataRepository[name];
+            if(repoData){
+                const result = repoData;
+                return result;
             }
-            if(!Array.isArray(copy.features)){
-                copy.features = [copy.features];
-            }
-            if(!map.dataRepository) map.dataRepository = {};
-            map.dataRepository[name] = copy;
         }else{
-            if(!map.dataRepository) map.dataRepository = {};
-            map.dataRepository[name] = data;
+            const els = root.querySelector(`keyhole-data[name='${name}']`);
+            if(els && els.data){
+                const result = els && els.data;
+                return result;
+            }
+            const repoData = map.dataRepository[name];
+            if(repoData && repoData.data){
+                const result = repoData && repoData.data;
+                return result;
+            }
         }
-    }
+    },
+    addData : function(map, name, incomingData){
+        const data = Array.isArray(incomingData)?{
+            type: 'FeatureCollection',
+            features: incomingData
+        }:incomingData;
+        if(!map.dataRepository) map.dataRepository = {};
+        map.dataRepository[name] = data;
+    },
+    initialize: async (options={})=>{
+        if(window.mapboxgl) return [];
+        //todo: check if deps already exist
+        var jsSource = 'https://unpkg.com/leaflet@1.7.1/dist/leaflet.js';
+        var styleSource = 'https://unpkg.com/leaflet@1.7.1/dist/leaflet.css';
+        var state = {};
+        var scriptEl = document.createElement('script');
+        var callback;
+        var error;
+        var result = new Promise((resolve, reject)=>{
+            callback = resolve;
+            error = reject;
+        });
+        var check = function(){
+            if(state.script && state.css) callback()
+        }
+        scriptEl.src = jsSource;
+        scriptEl.onload = function(script){
+            state.script = true;
+            check();
+        };
+        var styleEl = document.createElement('link');
+        styleEl.href = styleSource;
+        styleEl.rel = 'stylesheet';
+        styleEl.onload = function(script){
+            state.css = true;
+            check();
+        };
+        if(options.inject){
+            var el = options.inject === true?document.head:options.inject;
+            el.appendChild(scriptEl);
+            el.appendChild(styleEl);
+        }
+        const finalResult = await result;
+        if(!window.L) throw new Error('could not initialize leaflet');
+        return [scriptEl, styleEl];
+    },
+    initialized: false
 }
-try{
-    module.exports = mb;
-}catch(ex){}
-try{
-    if(window) window.leafletKeyholeEngine = mb;
-}catch(ex){}
+
+export const engine = mb;
+export const KeyholeEngine = mb;
+if(window){
+    window.leafletKeyholeEngine = mb;
+}
