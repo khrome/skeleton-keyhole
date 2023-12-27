@@ -8,8 +8,8 @@ Usage
 first you have to include the module and an engine:
 
 ```javascript
-import 'skeleton-keyhole';
 import 'skeleton-keyhole/mapbox';
+import 'skeleton-keyhole';
 // OR: import 'skeleton-keyhole/leaflet';
 ``` 
 

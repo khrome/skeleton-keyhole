@@ -15,12 +15,12 @@
             "require": "./package.json"
         },
         "./mapbox": {
-            "import": "./src/engines/mapbox.mjs",
-            "require": "./dist/engines/mapbox.cjs"
+            "import": "./src/mapbox.mjs",
+            "require": "./dist/mapbox.cjs"
         },
         "./leaflet": {
-            "import": "./src/engines/leaflet.mjs",
-            "require": "./dist/engines/leaflet.cjs"
+            "import": "./src/leaflet.mjs",
+            "require": "./dist/leaflet.cjs"
         },
         "./src/index.mjs": {
             "import": "./src/index.mjs",

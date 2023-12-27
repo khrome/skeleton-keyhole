@@ -1,32 +1,3 @@
-import sift from 'sift';
-
-var polyMask = function(features, turf){
-    var featureCollection = features.reduce(function(featureCollection, feature){
-        switch(feature.geometry.type){
-            case 'Polygon':
-                featureCollection.push(turf.polygon(feature.geometry.coordinates));
-                break;
-            case 'MultiPolygon':
-                featureCollection.push(turf.multiPolygon(feature.geometry.coordinates));
-                break;
-            default: break;
-        }
-        return featureCollection;
-    }, []);
-    var union = turf.featureCollection(featureCollection);
-    var mask = turf.combine(union).features[0];
-    var bboxPoly = turf.bboxPolygon([-180, -90, 180, 90]);
-    var res;
-    if(Array.isArray(mask)){
-        mask.forEach(function(feature){
-            res = turf.difference(res || bboxPoly, feature);
-        });
-    }else{
-        res = turf.difference(bboxPoly, mask);
-    }
-    return res;
-};
-
 const mb = {
     getData:(map, name)=>{
         //in mapbox we reference a registered dataset
@@ -49,7 +20,7 @@ const mb = {
                 }catch(ex){
                     console.log('ERROR', ex, options);
                 }
-            })
+            });
         }else{
             if(layer.type === 'fill'){
                 if(options.standardCursorBehavior){
@@ -69,13 +40,13 @@ const mb = {
                             window[options.callback](
                                 e.features[0],
                                 function(coordinates, description){
-                                    new mapboxgl.Popup()
-                                    .setLngLat(coordinates)
-                                    .setHTML(description)
-                                    .addTo(map);
+                                    new window.mapboxgl.Popup()
+                                        .setLngLat(coordinates)
+                                        .setHTML(description)
+                                        .addTo(map);
                                 },
                                 e
-                            )
+                            );
                         }
                     });
                 }
@@ -87,13 +58,13 @@ const mb = {
                                 e.features[0],
                                 function(coordinates, description){
                                     //set
-                                    hoverInstance = new mapboxgl.Popup()
+                                    hoverInstance = new window.mapboxgl.Popup()
                                         .setLngLat(coordinates)
                                         .setHTML(description)
                                         .addTo(map);
                                 },
                                 e
-                            )
+                            );
                         }
                     });
                     map.on('mouseleave', layer.id, function(e){
@@ -118,22 +89,22 @@ const mb = {
     createLayer:(map, options)=>{
         if(options.tiles){
             return {
-                "id": 'tiles-layer',
-                "type": "raster",
-                "source": {
-                    type : "raster",
+                id: 'tiles-layer',
+                type: 'raster',
+                source: {
+                    type : 'raster',
                     tileSize : (options.size || 256),
-                    "raster-fade-duration" : (options.transitionDuration || 500),
+                    'raster-fade-duration' : (options.transitionDuration || 500),
                     tiles : [
                         options.tiles
                     ]
                 }
-            }
+            };
         }
         if(options.data){ //we're displaying shapes
-            var map = {
+            var opmap = {
                 '$eq' : '=='
-            }
+            };
             var filter;
             if(options.filter){
                 filter = ['all'];
@@ -146,9 +117,9 @@ const mb = {
                         var operation = Object.keys(
                             options.filter.properties[propertyName]
                         )[0];
-                        if(!map[operation]) throw new Error('Unknown Operation: '+operation);
+                        if(!opmap[operation]) throw new Error('Unknown Operation: '+operation);
                         filter.push([
-                            map[operation],
+                            opmap[operation],
                             propertyName,
                             options.filter.properties[propertyName][operation]
                         ]);
@@ -161,13 +132,13 @@ const mb = {
                     const operation = Object.keys(
                         options.filter[name]
                     )[0];
-                    if(!map[operation]) throw new Error('Unknown Operation: '+operation);
+                    if(!opmap[operation]) throw new Error('Unknown Operation: '+operation);
                     filter.push([
-                        map[operation],
+                        opmap[operation],
                         subname,
                         options.filter[name][operation]
                     ]);
-                    delete options.filter[name]
+                    delete options.filter[name];
                 }
             }
             var layers = [];
@@ -181,7 +152,7 @@ const mb = {
                         'fill-color': (options['fill-color'] || '#333333'),
                         'fill-opacity': (options['fill-opacity'] || .8)
                     }
-                }
+                };
                 if(filter) layer.filter = filter;
                 if(options['min-zoom']) layer.minzoom = options['min-zoom'];
                 if(options['max-zoom']) layer.maxzoom = options['max-zoom'];
@@ -198,7 +169,7 @@ const mb = {
                         'line-opacity': (options['stroke-opacity'] || 1),
                         'line-width': (options['stroke-width'] || 4)
                     }
-                }
+                };
                 if(filter) strokeLayer.filter = filter;
                 if(options['min-zoom']) strokeLayer.minzoom = options['min-zoom'];
                 if(options['max-zoom']) strokeLayer.maxzoom = options['max-zoom'];
@@ -214,7 +185,7 @@ const mb = {
                             options['property'] && options['property']+' : {'+options['property']+'}'
                         ) || options['text'],
                         //'text-size': (options['text-size'] || 1),
-                        "text-font": [(options['text-font'] || 'Arial Unicode MS Regular')],
+                        'text-font': [(options['text-font'] || 'Arial Unicode MS Regular')],
                     },
                     minzoom:14,
                     'paint': {
@@ -239,8 +210,6 @@ const mb = {
         if(!options.auth) throw new Error('mapbox requires authentication options');
         window.mapboxgl.accessToken = options.auth.token;
         
-        Math.floor(Math.random()*1000000).toString()
-        
         var map = new window.mapboxgl.Map({
             container: options.id,
             style: 'mapbox://styles/mapbox/streets-v11', // stylesheet location
@@ -262,14 +231,15 @@ const mb = {
         var state = {};
         var scriptEl = document.createElement('script');
         var callback;
+        // eslint-disable-next-line no-unused-vars
         var error;
         var result = new Promise((resolve, reject)=>{
             callback = resolve;
             error = reject;
         });
         var check = function(){
-            if(state.script && state.css) callback()
-        }
+            if(state.script && state.css) callback();
+        };
         scriptEl.src = jsSource;
         scriptEl.onload = function(script){
             state.script = true;
@@ -287,12 +257,12 @@ const mb = {
             el.appendChild(scriptEl);
             el.appendChild(styleEl);
         }
-        const finalResult = await result;
+        await result;
         if(!window.mapboxgl) throw new Error('could not initialize mapboxgl');
         return [scriptEl, styleEl];
     },
     initialized: false
-}
+};
 
 export const engine = mb;
 export const KeyholeEngine = mb;

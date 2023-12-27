@@ -1,38 +1,11 @@
 import sift from 'sift';
 
-var polyMask = function(features, turf){
-    var featureCollection = features.reduce(function(featureCollection, feature){
-        switch(feature.geometry.type){
-            case 'Polygon':
-                featureCollection.push(turf.polygon(feature.geometry.coordinates));
-                break;
-            case 'MultiPolygon':
-                featureCollection.push(turf.multiPolygon(feature.geometry.coordinates));
-                break;
-            default: break;
-        }
-        return featureCollection;
-    }, []);
-    var union = turf.featureCollection(featureCollection);
-    var mask = turf.combine(union).features[0];
-    var bboxPoly = turf.bboxPolygon([-180, -90, 180, 90]);
-    var res;
-    if(Array.isArray(mask)){
-        mask.forEach(function(feature){
-            res = turf.difference(res || bboxPoly, feature);
-        });
-    }else{
-        res = turf.difference(bboxPoly, mask);
-    }
-    return res;
-};
-
 var mb = {
     requireDependencies : function(auth){
         if(!window.L) throw new Error('leaflet required');
     },
     createMap : function(options){
-        var map = L.map(options.id, {maxZoom: options.maxZoom||21});
+        var map = window.L.map(options.id, {maxZoom: options.maxZoom||21});
         map.waitingShapeLayers = {};
         if(options.onLoad) setTimeout(function(){
             options.onLoad();
@@ -45,7 +18,7 @@ var mb = {
     },
     createLayer : function(map, options){
         if(options.tiles){
-            return L.tileLayer(options.tiles, {
+            return window.L.tileLayer(options.tiles, {
                 attribution: options.attribution || 'Served by SkeletonKeyhole',
                 maxZoom :21
             });
@@ -54,21 +27,17 @@ var mb = {
             var data = typeof options.data === 'string'?
                 map.dataRepository[options.data]:
                 options.data;
-            var map = {
-                '$eq' : '=='
-            }
             var filter;
             if(options.filter){
                 var test = sift(options.filter);
                 filter = function(feature){
                     const result = test(feature);
                     return result;
-                }
+                };
                 const copy = JSON.parse(JSON.stringify(data));
                 copy.features = copy.features.filter(filter);
                 data = copy;
             }
-            var layers = [];
             var style = {};
             if(options['fill-color']){
                 style.fill = true;
@@ -81,9 +50,9 @@ var mb = {
                 style.weight = (options['stroke-width'] || 4);
                 style.opacity = (options['stroke-opacity'] || 1);
             }
-            if(options['text'] || options['property']){
-            }
-            var layer = L.geoJSON(data, {
+            /*if(options['text'] || options['property']){
+            }*/
+            var layer = window.L.geoJSON(data, {
                 style: function (feature) {
                     return style;
                 }
@@ -95,7 +64,6 @@ var mb = {
         return options;
     },
     addLayer : function(map, layer, options){
-        var ob = this;
         if(layer){
             layer.addTo(map);
         }else{
@@ -111,13 +79,13 @@ var mb = {
         // return is always a FeatureCollection
         //if(options.mask)
         var collection = Array.isArray(data)?{
-            "type": "FeatureCollection",
-            "features": data
+            type: 'FeatureCollection',
+            features: data
         }:data;
         return collection;
     },
     focusOnData : function(map, data, scale){
-        var bounds = turf.bbox(data);
+        var bounds = window.turf.bbox(data);
         var scaled = scale(bounds, 1.0);
         var reordered = [ //leaflet does 2 corners in flipped order
             scaled.slice(0, 2).reverse(),
@@ -128,26 +96,6 @@ var mb = {
     getData : function(map, name, root){
         const repository = map.dataRepository;
         return repository[name];
-        //*
-        if(name.indexOf('-inverted') !== -1){
-            const els = root.querySelector(`keyhole-data[name='${name.substring(0, name.length-9)}'][invert='true']`);
-            const repoData = map.dataRepository[name];
-            if(repoData){
-                const result = repoData;
-                return result;
-            }
-        }else{
-            const els = root.querySelector(`keyhole-data[name='${name}']`);
-            if(els && els.data){
-                const result = els && els.data;
-                return result;
-            }
-            const repoData = map.dataRepository[name];
-            if(repoData && repoData.data){
-                const result = repoData && repoData.data;
-                return result;
-            }
-        }
     },
     addData : function(map, name, incomingData){
         const data = Array.isArray(incomingData)?{
@@ -165,14 +113,15 @@ var mb = {
         var state = {};
         var scriptEl = document.createElement('script');
         var callback;
+        // eslint-disable-next-line no-unused-vars
         var error;
         var result = new Promise((resolve, reject)=>{
             callback = resolve;
             error = reject;
         });
         var check = function(){
-            if(state.script && state.css) callback()
-        }
+            if(state.script && state.css) callback();
+        };
         scriptEl.src = jsSource;
         scriptEl.onload = function(script){
             state.script = true;
@@ -190,12 +139,12 @@ var mb = {
             el.appendChild(scriptEl);
             el.appendChild(styleEl);
         }
-        const finalResult = await result;
+        await result;
         if(!window.L) throw new Error('could not initialize leaflet');
         return [scriptEl, styleEl];
     },
     initialized: false
-}
+};
 
 export const engine = mb;
 export const KeyholeEngine = mb;
