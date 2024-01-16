@@ -69,6 +69,32 @@ Then, in your markup you can define tile, shape and data layers... the following
 </skeleton-keyhole>
 ```
 
+Demo
+----
+
+You can run basic demos for each of the map types from within the project with:
+
+### mapbox
+
+You'll need to have you mapbox ket set to `MAPBOX_API_TOKEN` within the shell you launch from.
+
+```bash
+npm run local-server-mapbox
+```
+
+### leaflet
+
+```bash
+npm run local-server-leaflet
+```
+### miniplot
+
+Unlike the other map variants, this map uses [cartesian coordinates](https://en.wikipedia.org/wiki/Cartesian_coordinate_system) to lay out a world (instead of [geographic coordinates](https://en.wikipedia.org/wiki/Geographic_coordinate_system)). Unlike other libraries it does not need a fixed image and continues to use tiles. 
+
+```bash
+npm run local-server-miniplot
+```
+
 Testing
 -------
 

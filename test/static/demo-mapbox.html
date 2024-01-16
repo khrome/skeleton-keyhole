@@ -21,7 +21,9 @@
             "@turf/combine":"https://cdn.jsdelivr.net/npm/@turf/combine@6.5.0/dist/es/index.js",
             "@turf/helpers":"https://cdn.jsdelivr.net/npm/@turf/helpers@6.5.0/dist/es/index.js",
             "@turf/meta":"https://cdn.jsdelivr.net/npm/@turf/meta@6.5.0/dist/es/index.js",
-            "path": "https://unpkg.com/browser-or-node@2.1.1/src/index.js"
+            "path": "https://unpkg.com/browser-or-node@2.1.1/src/index.js",
+            "extended-emitter": "/node_modules/extended-emitter/extended-emitter.mjs",
+            "node:events": "/node_modules/extended-emitter/node-events.mjs"
         }}</script>
         <title>SkeletonKeyhole :: Mapbox Demo</title>
         <style>
@@ -57,10 +59,9 @@
         <div class="map-container">
             <script>
                 const urlParams = new URLSearchParams(window.location.search);
-                console.log()
                 const token = urlParams.get('token') || 'no-token';
                 document.write(`<skeleton-keyhole
-                    engine="leaflet"
+                    engine="mapbox"
                     id="foo"
                     identifier="somethign"
                     token="${token}"

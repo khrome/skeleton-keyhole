@@ -39,6 +39,7 @@ export class KeyholeTileLayer extends HTMLElement{
         engine.addLayer(map, this.instance);
         var event = new Event('keyhole-map-layer-add', {bubbles: true});
         event.el = this;
+        this.loaded = true;
         this.dispatchEvent(event);
     }
     disconnectedCallback(){

@@ -12,6 +12,9 @@ const mb = {
             }
         });
     },
+    setCenter:(map, center)=>{
+        map.setCenter(center);
+    },
     addLayer:(map, layer, options)=>{
         if(Array.isArray(layer)){
             layer.forEach(function(sublayer){
@@ -98,6 +101,9 @@ const mb = {
                     tiles : [
                         options.tiles
                     ]
+                },
+                onLoad:()=>{
+                    console.log('LAYER LOAD!');
                 }
             };
         }
@@ -211,16 +217,36 @@ const mb = {
         window.mapboxgl.accessToken = options.auth.token;
         
         var map = new window.mapboxgl.Map({
+            continuousWorld: false,
+            noWrap: true,
+            //maxBounds: bounds,
             container: options.id,
             style: 'mapbox://styles/mapbox/streets-v11', // stylesheet location
             center: options.center || [-74.5, 40], // starting position [lng, lat]
             zoom: options.zoom || 9 // starting zoom
         });
-        //map.waitingShapeLayers = {};
+        map.on('idle', ()=>{
+            console.log('IDLE');
+        });
+        map.on('sourcedata', (event)=>{
+            console.log('SOURCE', event);
+        });
+        if(options.style){
+            map.setStyle(JSON.parse(options.style));
+            
+        }
         if(options.onLoad) map.on('load', function(){
             options.onLoad();
         });
-        
+        map.getZoom = ()=>{
+            return map.getCamera().getZoom();
+        };
+        map.getCenter = ()=>{
+            return map.getCamera().getCenter();
+        };
+        map.setCenter = (center)=>{
+            return map.getCamera().setCenter(center);
+        };
         return map;
     },
     initialize: async (options={})=>{
@@ -267,5 +293,5 @@ const mb = {
 export const engine = mb;
 export const KeyholeEngine = mb;
 if(window){
-    window.leafletKeyholeEngine = mb;
+    window.mapboxKeyholeEngine = mb;
 }

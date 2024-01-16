@@ -1,6 +1,6 @@
 {
     "name": "skeleton-keyhole",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "type": "module",
     "main": "dist/index.mjs",
     "module": "src/index.mjs",
@@ -21,6 +21,10 @@
         "./leaflet": {
             "import": "./src/leaflet.mjs",
             "require": "./dist/leaflet.cjs"
+        },
+        "./miniplot": {
+            "import": "./src/miniplot.mjs",
+            "require": "./dist/miniplot.cjs"
         },
         "./src/index.mjs": {
             "import": "./src/index.mjs",
@@ -71,6 +75,7 @@
             "path"
         ],
         "shims": {
+            "node:events": "node_modules/extended-emitter/node-events.mjs",
             "chai": "node_modules/chai/chai.js",
             "browser-or-node": "node_modules/browser-or-node/src/index.js"
         }
@@ -98,7 +103,8 @@
         "require-test": "mocha test/test.cjs",
         "build-commonjs": "./node_modules/@environment-safe/commonjs-builder/bin/build.mjs",
         "local-server-mapbox": "open \"http://localhost:8085/test/static/demo-mapbox.html?token=$MAPBOX_API_TOKEN\" ; npx http-server -p 8085",
-        "local-server-leaflet": "open \"http://localhost:8085/test/static/demo-leaflet.html ; npx http-server -p 8085",
+        "local-server-leaflet": "open \"http://localhost:8085/test/static/demo-leaflet.html\" ; npx http-server -p 8085",
+        "local-server-miniplot": "open \"http://localhost:8085/test/static/demo-miniplot.html\" ; npx http-server -p 8085",
         "headless-browser-test": "npm run headless-chrome-test; npm run headless-firefox-test; npm run headless-safari-test",
         "headless-chrome-test": "moka --server . --browser chrome test/test.mjs",
         "headless-firefox-test": "moka --server . --browser firefox test/test.mjs",
@@ -111,9 +117,14 @@
         "prepare": "husky install"
     },
     "dependencies": {
-        "@environment-safe/elements": "^0.0.2",
+        "@environment-safe/canvas": "^4.2.0",
+        "@environment-safe/elements": "^0.0.3",
+        "@environment-safe/file": "^0.3.1",
+        "@environment-safe/runtime-context": "^0.0.1",
+        "@environment-safe/tween": "^0.0.1",
         "@turf/bbox-polygon": "^6.5.0",
         "@turf/turf": "^6.5.0",
-        "browser-or-node": "^2.1.1"
+        "browser-or-node": "^2.1.1",
+        "extended-emitter": "^1.6.0"
     }
 }

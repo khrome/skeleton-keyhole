@@ -13,6 +13,7 @@ const ensureRequire = ()=> (!internalRequire) && (internalRequire = mod.createRe
  */
 
 import { HTMLElement, customElements } from '@environment-safe/elements';
+import { Emitter } from 'extended-emitter';
 
 const isLoaded = (loadableElList)=>{
     if(loadableElList.length === 0) return true;
@@ -25,12 +26,13 @@ const isLoaded = (loadableElList)=>{
 export class SkeletonKeyhole extends HTMLElement{
     constructor(){
         super();
+        this.emitter = new Emitter();
         var engineName = this.getAttribute('engine');
         if(!engineName) throw new Error('engine not found: '+engineName);
         try{
             this.engine = 
                 window[engineName+'KeyholeEngine'] || 
-                import('./engines/'+engineName);
+                (import('./'+engineName));
         }catch(ex){
             throw new Error('engine not found: '+engineName);
         }
@@ -92,8 +94,24 @@ export class SkeletonKeyhole extends HTMLElement{
             });
         });
     }
+    attributeChangedCallback(name, outgoing, incoming){
+        if(name === 'center'){
+            const jsonValue = JSON.parse(incoming);
+            if(this.map){
+                this.engine.setCenter(this.map, jsonValue);
+            }else{
+                this.addEventListener('load', ()=>{
+                    this.engine.setCenter(this.map, jsonValue);
+                });
+            }
+        }
+    }
+    static get observedAttributes() { return [ 'center']; }
     getData(name){
         return this.engine.getData(this.map, name, this);
+    }
+    animateTo(position, time, options){
+        this.engine.animate(this.map, position, time, options);
     }
     getLayer(name){
         return this.engine.getLayer(name, this);
@@ -123,27 +141,45 @@ export class SkeletonKeyhole extends HTMLElement{
         el.setAttribute('id', id);
         el.setAttribute('class', 'keyhole-container');
         this.appendChild(el);
+        var style = this.getAttribute('mapStyle') || null;
         
         (async ()=>{ //make the rest of the process async, signaled by map attachment
             //make sure we've initialized the lib
+            if(this.engine.then) this.engine = await this.engine;
             if(!this.engine.initialized){
                 await this.engine.initialize({inject:true});
             }
             //initialize the map
             const zoom = this.getAttribute('zoom') || null;
+            const minZoom = this.getAttribute('min-zoom') || null;
+            const maxZoom = this.getAttribute('max-zoom') || null;
             const center = this.getAttribute('center')?
                 JSON.parse(this.getAttribute('center')):
                 null;
+            let bounds = this.getAttribute('bounds');
+            if(bounds){
+                bounds = JSON.parse(bounds);
+            }
+            
             const options = this.getMapOptions({
                 id,
                 auth: { token: this.getAttribute('token') },
                 zoom,
-                center
+                minZoom, 
+                maxZoom,
+                bounds,
+                center,
+                style
             }, this);
             options.onLoad = ()=>{
+                //this.map.removeAnnotations();
+                window.mm = this.map;
                 this._attachMap();
+                this.emitter.emit('map-loaded');
             };
+            //window.L.control.mousePosition({position: 'topright'})
             this.map = await this.engine.createMap(options);
+            this.map.bounds = bounds;
             //this._attachMap();
         })();
         

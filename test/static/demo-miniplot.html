@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="importmap">{ "imports" :{
+            "browser-or-node":"https://unpkg.com/browser-or-node@2.1.1/src/index.js", 
+            "@environment-safe/package" : "https://unpkg.com/@environment-safe/package@0.1.3/src/index.mjs",
+            "@environment-safe/elements" : "https://unpkg.com/@environment-safe/elements/src/index.mjs",
+            "sift": "/node_modules/sift/es5m/index.js",
+            "@environment-safe/canvas" : "https://unpkg.com/@environment-safe/canvas/src/index.mjs",
+            "@environment-safe/tween" : "https://unpkg.com/@environment-safe/tween/src/index.mjs",
+            "@environment-safe/file" : "https://unpkg.com/@environment-safe/file/src/index.mjs",
+            "@environment-safe/runtime-context" : "https://unpkg.com/@environment-safe/runtime-context/src/index.mjs",
+            "module": "https://unpkg.com/browser-or-node@2.1.1/src/index.js",
+            "node:events": "https://unpkg.com/extended-emitter@1.3.2/node-events.mjs",
+            "@turf/bbox":"https://cdn.jsdelivr.net/npm/@turf/bbox@6.5.0/dist/es/index.js",
+            "@turf/bbox-polygon":"https://cdn.jsdelivr.net/npm/@turf/bbox-polygon@6.5.0/dist/es/index.js",
+            "@turf/polygon":"https://cdn.jsdelivr.net/npm/@turf/polygon@6.5.0/dist/es/index.js",
+            "@turf/multi-polygon":"https://cdn.jsdelivr.net/npm/@turf/multi-polygon@6.5.0/dist/es/index.js",
+            "@turf/difference":"https://cdn.jsdelivr.net/npm/@turf/difference@6.5.0/dist/es/index.js",
+            "@turf/combine":"https://cdn.jsdelivr.net/npm/@turf/combine@6.5.0/dist/es/index.js",
+            "@turf/helpers":"https://cdn.jsdelivr.net/npm/@turf/helpers@6.5.0/dist/es/index.js",
+            "@turf/meta":"https://cdn.jsdelivr.net/npm/@turf/meta@6.5.0/dist/es/index.js",
+            "extended-emitter": "/node_modules/extended-emitter/extended-emitter.mjs",
+            "node:events": "/node_modules/extended-emitter/node-events.mjs",
+            "os": "https://unpkg.com/browser-or-node@2.1.1/src/index.js",
+            "fs": "https://unpkg.com/browser-or-node@2.1.1/src/index.js",
+            "path": "https://unpkg.com/browser-or-node@2.1.1/src/index.js"
+        }}</script>
+        <title>SkeletonKeyhole :: Leaflet Demo</title>
+        <style>
+            body, skeleton-keyhole{
+                margin:0px;
+                display:block;
+                height: 100%;
+                width: 100%;
+            }
+        </style>
+        <script>
+            window.alertDump = function(feature){
+                alert(JSON.stringify(feature))
+            }
+        </script>
+        <script type="module">
+            import '../../src/miniplot.mjs';
+            import { 
+                SkeletonKeyhole 
+            } from '../../src/index.mjs';
+        </script>
+        <style>
+            .map-container{
+                height: 100%;
+                width: 100%;
+                position:absolute;
+                display: block;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="map-container">
+            <skeleton-keyhole
+                engine="miniplot"
+                identifier="plot"
+                id="plot"
+                token="no-token"
+                zoom="19"
+                center="[21, 25]"
+            >
+                <keyhole-tiles
+                    url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                ></keyhole-tiles>
+            </skeleton-keyhole>
+        </div>
+        <script type="module">
+            setTimeout(()=>{
+                const plot = document.getElementById('plot')
+                plot.animateTo([
+                    40,
+                    40
+                ], 5000);
+            }, 2000);
+        </script>
+    </body>
+</html>

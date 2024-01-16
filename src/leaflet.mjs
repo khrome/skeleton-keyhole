@@ -4,8 +4,15 @@ var mb = {
     requireDependencies : function(auth){
         if(!window.L) throw new Error('leaflet required');
     },
-    createMap : function(options){
-        var map = window.L.map(options.id, {maxZoom: options.maxZoom||21});
+    setCenter:(map, center)=>{
+        const point = { lat:center[1], lng:center[0] };
+        map.setView(point, map.getZoom(), { animation: true }); 
+    },
+    createMap : function(options={}){
+        var map = window.L.map(options.id, {
+            maxZoom: options.maxZoom||21,
+            minZoom: options.minZoom
+        });
         map.waitingShapeLayers = {};
         if(options.onLoad) setTimeout(function(){
             options.onLoad();
@@ -14,6 +21,7 @@ var mb = {
             (options.center || [-74.5, 40]).reverse(),
             options.zoom || 19
         );
+        window.mapi = map;
         return map;
     },
     createLayer : function(map, options){
@@ -106,7 +114,7 @@ var mb = {
         map.dataRepository[name] = data;
     },
     initialize: async (options={})=>{
-        if(window.mapboxgl) return [];
+        if(window.L) return [];
         //todo: check if deps already exist
         var jsSource = 'https://unpkg.com/leaflet@1.7.1/dist/leaflet.js';
         var styleSource = 'https://unpkg.com/leaflet@1.7.1/dist/leaflet.css';
@@ -125,6 +133,7 @@ var mb = {
         scriptEl.src = jsSource;
         scriptEl.onload = function(script){
             state.script = true;
+            initLeaflet(window.L);
             check();
         };
         var styleEl = document.createElement('link');
@@ -151,3 +160,60 @@ export const KeyholeEngine = mb;
 if(window){
     window.leafletKeyholeEngine = mb;
 }
+
+const initLeaflet = (L)=>{
+    if(!L) throw new Error('could not find attached leaflet');
+    L.CRS.myCRS = L.extend({
+        
+    }, L.CRS.Simple, {
+        infinite: false
+    });
+    L.Control.MousePosition = L.Control.extend({
+        options: {
+            position: 'bottomleft',
+            separator: ' : ',
+            emptyString: 'Unavailable',
+            lngFirst: false,
+            numDigits: 5,
+            lngFormatter: undefined,
+            latFormatter: undefined,
+            prefix: ''
+        },
+    
+        onAdd: function (map) {
+            this._container = L.DomUtil.create('div', 'leaflet-control-mouseposition');
+            L.DomEvent.disableClickPropagation(this._container);
+            map.on('mousemove', this._onMouseMove, this);
+            this._container.innerHTML=this.options.emptyString;
+            return this._container;
+        },
+    
+        onRemove: function (map) {
+            map.off('mousemove', this._onMouseMove);
+        },
+    
+        _onMouseMove: function (e) {
+            var lng = this.options.lngFormatter ? this.options.lngFormatter(e.latlng.lng) : L.Util.formatNum(e.latlng.lng, this.options.numDigits);
+            var lat = this.options.latFormatter ? this.options.latFormatter(e.latlng.lat) : L.Util.formatNum(e.latlng.lat, this.options.numDigits);
+            var value = this.options.lngFirst ? lng + this.options.separator + lat : lat + this.options.separator + lng;
+            var prefixAndValue = this.options.prefix + ' ' + value;
+            this._container.innerHTML = prefixAndValue;
+        }
+    
+    });
+    
+    L.Map.mergeOptions({
+        positionControl: false
+    });
+    
+    L.Map.addInitHook(function () {
+        if (this.options.positionControl) {
+            this.positionControl = new L.Control.MousePosition();
+            this.addControl(this.positionControl);
+        }
+    });
+    
+    L.control.mousePosition = function (options) {
+        return new L.Control.MousePosition(options);
+    };
+};
