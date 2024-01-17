@@ -8,8 +8,9 @@ class MiniPlot{
     constructor(options={}){
         // coupled to submesh-treadmill's defaults
         this.tileSize = options.tileSize || 16;
+        this.placeHolder = options.placeHolder || './assets/tile-placeholder.png';
         this.layers = [];
-        this.debug = false;
+        this.debug = options.debug || false;
         this.center = options.center || [0,0];
         this.centerTile = [
             ( options.center[0] === 0?0:Math.floor(options.center[0] / this.tileSize) ),
@@ -23,8 +24,8 @@ class MiniPlot{
             this.width = width;
             this.height = height;
             this.canvas = new Canvas({ height, width });
-            el.appendChild(this.canvas);
-            this.canvas.removeAttribute('hidden');
+            //container.appendChild(this.canvas);
+            //this.canvas.removeAttribute('hidden');
             this.viewCenter = {
                 x: Math.floor(width/2),
                 y: Math.floor(height/2)
@@ -41,38 +42,45 @@ class MiniPlot{
         ];
         (async ()=>{
             if(!defaultTile){
-                defaultTile = await Canvas.load('./assets/tile-placeholder.png');
+                defaultTile = await Canvas.load(this.placeHolder);
             }
             this.preload();
             await this.redraw();
         })();
     }
     
-    animate(position, time=1000, options={}){
+    async animate(position, time=1000, options={}){
         //Tween.linear();
         //if(this.animationId)
-        const easingFnName = options.easing || 'linear';
-        const startCenter = this.center.slice();
-        const newCenter = position.slice();
-        let center = null;
-        const start = Date.now();
-        let elapsed = null;
-        const animationHandler = ()=>{
-            elapsed = Date.now() - start;
-            center = [
-                Tween[easingFnName](elapsed, startCenter[0], newCenter[0], time),
-                Tween[easingFnName](elapsed, startCenter[1], newCenter[1], time)
-            ];
-            this.setCenter(center);
-            if(elapsed < time) requestAnimationFrame(animationHandler);
-        };
-        //this.animationId =
-        requestAnimationFrame(animationHandler);
+        return await new Promise((resolve, reject)=>{
+            try{
+                const easingFnName = options.easing || 'linear';
+                const startCenter = this.center.slice();
+                const newCenter = position.slice();
+                let center = null;
+                const start = Date.now();
+                let elapsed = null;
+                const animationHandler = ()=>{
+                    elapsed = Date.now() - start;
+                    center = [
+                        Tween[easingFnName](elapsed, startCenter[0], newCenter[0], time),
+                        Tween[easingFnName](elapsed, startCenter[1], newCenter[1], time)
+                    ];
+                    this.setCenter(center);
+                    if(elapsed < time) requestAnimationFrame(animationHandler);
+                    else resolve();
+                };
+                //this.animationId =
+                requestAnimationFrame(animationHandler);
+            }catch(ex){
+                reject(ex);
+            }
+        });
     }
     
     async preload(){
         if(!defaultTile){
-            defaultTile = await Canvas.load('./assets/tile-placeholder.png');
+            defaultTile = await Canvas.load(this.placeHolder);
         }
         const layers = this.layers.reverse();
         for(let lcv=0; lcv < layers.length; lcv++ ){
@@ -195,7 +203,7 @@ class MiniPlotLayer{
         ];
         canvas.offset = [
             graph.offset[0]/scaleFactor,
-            (this.map.tileSize-graph.offset[0])/scaleFactor
+            (this.map.tileSize-graph.offset[1])/scaleFactor
         ];
         
         return {graph, stage, canvas, tile, scaleFactor};
@@ -235,9 +243,11 @@ class MiniPlotLayer{
             this.map.width,
             this.map.height
         );
+        let scale = null;
         this.traverseTiles({offset}, (
             row, col, invertedCol, rowOffset, colOffset, graph, stage, canvas, tile, scaleFactor
         )=>{
+            if(!scale) scale = scaleFactor;
             xPlot = (this.map.width/2)+((rowOffset)*tile.width)-(canvas.offset[0]);
             yPlot = (this.map.height/2)-((colOffset)*tile.height)-(canvas.offset[1]);
             try{
@@ -302,6 +312,32 @@ class MiniPlotLayer{
                 (this.map.height/2),
             );
         }
+        
+        /*context.beginPath();
+        context.arc(
+            center[0]/scale, //-(offset.x), 
+            canvas.height-center[1]/scale, //+(offset.y),
+            radius, 
+            0, 2 * Math.PI
+        );
+        context.fillStyle = '#CC0000';
+        context.fill();
+        context.lineWidth = 5;
+        context.strokeStyle = '#003300';
+        context.stroke();
+        if(this.map.debug){
+            context.fillStyle = '#FFFFFF';
+            context.fillText(
+                `${Math.round(center[0])}, ${Math.round(center[1])}`, 
+                center[0]/scale-10,
+                canvas.height-(center[1])/scale,
+            );
+            context.fillText(
+                `${Math.round(center[0]/scale)}, ${Math.round(center[1]/scale)}`, 
+                center[0]/scale-10,
+                canvas.height-(center[1])/scale+10,
+            );
+        }*/
     }
 }
 
@@ -313,8 +349,15 @@ var mb = {
     setCenter:(map, center)=>{
         map.setCenter(center);
     },
-    animate:(map, position, time, options)=>{
-        map.animate(position, time, options);
+    animate: async (map, position, time, options)=>{
+        return await map.animate(position, time, options);
+    },
+    attach:(keyholeInstance, map)=>{
+        const container = document.getElementById(
+            keyholeInstance.getAttribute('identifier')
+        );
+        container.appendChild(map.canvas);
+        map.canvas.removeAttribute('hidden');
     },
     createMap : function(options={}){
         const map = new MiniPlot(options);
@@ -323,7 +366,8 @@ var mb = {
     createLayer : function(map, options){
         if(options.tiles){
             options.center = map.centerTile;
-            return new MiniPlotLayer(options);
+            const plot = new MiniPlotLayer(options);
+            return plot;
         }
         if(options.data){ //we're displaying shapes
             

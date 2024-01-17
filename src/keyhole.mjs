@@ -161,6 +161,8 @@ export class SkeletonKeyhole extends HTMLElement{
                 bounds = JSON.parse(bounds);
             }
             
+            const debug = this.hasAttribute('debug') || null;
+            
             const options = this.getMapOptions({
                 id,
                 auth: { token: this.getAttribute('token') },
@@ -169,8 +171,11 @@ export class SkeletonKeyhole extends HTMLElement{
                 maxZoom,
                 bounds,
                 center,
+                debug,
                 style
             }, this);
+            const placeHolder = this.getAttribute('placeholder');
+            if(placeHolder) options.placeHolder = placeHolder;
             options.onLoad = ()=>{
                 //this.map.removeAnnotations();
                 window.mm = this.map;
@@ -179,6 +184,9 @@ export class SkeletonKeyhole extends HTMLElement{
             };
             //window.L.control.mousePosition({position: 'topright'})
             this.map = await this.engine.createMap(options);
+            if(this.engine.attach){
+                this.engine.attach(this, this.map);
+            }
             this.map.bounds = bounds;
             //this._attachMap();
         })();
